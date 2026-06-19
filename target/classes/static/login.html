@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Impound System</title>
+    <style>
+        body{
+            margin:0;
+            font-family:Arial,sans-serif;
+            background:
+              radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 30%),
+              linear-gradient(135deg,#08152b,#103a78,#1f5fbf);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .box{
+            width:420px;
+            background:rgba(255,255,255,.98);
+            border-radius:22px;
+            padding:34px;
+            box-shadow:0 18px 60px rgba(0,0,0,.22);
+        }
+        h2{
+            margin:0 0 8px;
+            color:#143d7a;
+            text-align:center;
+        }
+        .sub{
+            text-align:center;
+            color:#667085;
+            margin-bottom:22px;
+        }
+        input{
+            width:100%;
+            box-sizing:border-box;
+            padding:14px;
+            margin:10px 0;
+            border:1px solid #d0d5dd;
+            border-radius:12px;
+            font-size:14px;
+        }
+        button{
+            width:100%;
+            padding:14px;
+            border:none;
+            border-radius:12px;
+            background:#1f5fbf;
+            color:white;
+            font-size:15px;
+            cursor:pointer;
+            margin-top:8px;
+        }
+        .demo{
+            margin-top:18px;
+            background:#f5f7fb;
+            border-radius:12px;
+            padding:14px;
+            font-size:13px;
+            color:#475467;
+            line-height:1.8;
+        }
+        .error{
+            color:#b42318;
+            text-align:center;
+            margin-top:12px;
+            min-height:18px;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>Government Impound System</h2>
+    <div class="sub">Secure access portal</div>
+
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <div class="error" id="errorMsg"></div>
+
+    <div class="demo">
+        admin / 123<br>
+        employee / 123<br>
+        police / 123<br>
+        viewer / 123
+    </div>
+</div>
+
+<script>
+    async function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const errorMsg = document.getElementById("errorMsg");
+
+        errorMsg.textContent = "";
+
+        try {
+            const res = await fetch("/api/login", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                errorMsg.textContent = data.message;
+                return;
+            }
+
+            localStorage.setItem("username", username);
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("fullName", data.fullName || "");
+            localStorage.setItem("ownerId", data.ownerId || "");
+
+            window.location.href = "index.html";
+        } catch (e) {
+            errorMsg.textContent = "Cannot connect to server";
+        }
+    }
+</script>
+</body>
+</html>

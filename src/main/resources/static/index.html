@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Government Impound System</title>
+    <style>
+        :root{
+          --bg:#eef3fb;
+          --card:#ffffff;
+          --primary:#12396f;
+          --primary2:#1f5fbf;
+          --text:#1f2937;
+          --muted:#6b7280;
+          --border:#dde6f2;
+          --danger:#b42318;
+          --success:#067647;
+          --warning:#b54708;
+          --radius:18px;
+          --shadow:0 10px 28px rgba(15,23,42,.08);
+        }
+        *{box-sizing:border-box}
+        body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+        .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+        .sidebar{
+          background:linear-gradient(180deg,#0b264f,#153f80);
+          color:#fff;padding:24px 18px;position:sticky;top:0;height:100vh
+        }
+        .brand{display:flex;gap:12px;align-items:center;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,.18)}
+        .badgeLogo{width:50px;height:50px;border-radius:15px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px}
+        .brand h2{margin:0;color:#fff;font-size:18px}
+        .brand small{color:rgba(255,255,255,.8)}
+        .nav{display:flex;flex-direction:column;gap:8px}
+        .nav button{
+          width:100%;border:none;background:transparent;color:#fff;text-align:left;
+          padding:12px 14px;border-radius:12px;cursor:pointer;font-size:14px
+        }
+        .nav button:hover,.nav button.active{background:rgba(255,255,255,.14)}
+        .content{padding:26px}
+        .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+        .page-title h1{margin:0;color:#102a43}
+        .page-title p{margin:6px 0 0;color:var(--muted)}
+        .top-actions{display:flex;gap:10px;align-items:center}
+        .pill{background:#e8f1ff;border:1px solid #cfe0ff;color:var(--primary);padding:10px 14px;border-radius:999px;font-weight:600;font-size:13px}
+        .btn{border:none;border-radius:12px;padding:11px 16px;cursor:pointer;font-weight:600}
+        .btn-danger{background:#fff0f0;color:#b42318;border:1px solid #f7caca}
+        .btn-primary{background:#1f5fbf;color:white}
+        .btn-secondary{background:#eef4ff;color:#12396f;border:1px solid #d7e6ff}
+        .btn-success{background:#e7f8f0;color:#067647;border:1px solid #b8ebcf}
+        .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+        .card,.section,.outputPanel{
+          background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)
+        }
+        .card{padding:18px}
+        .card .title{font-size:13px;color:var(--muted);margin-bottom:10px}
+        .card .value{font-size:28px;font-weight:700;color:#0f2f5f}
+        .main-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:20px}
+        .section{padding:20px;margin-bottom:20px}
+        .section h3{margin:0 0 14px;color:#12396f}
+        .sub{margin:-4px 0 14px;color:var(--muted);font-size:13px}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+        .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+        .field label{font-size:13px;font-weight:600;color:#334155}
+        .field input,.field select{
+          height:44px;border:1px solid var(--border);border-radius:12px;padding:0 12px;background:#fff
+        }
+        .actions,.option-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+        .search-box{display:flex;gap:10px}
+        .search-box input{flex:1;height:44px;border:1px solid var(--border);border-radius:12px;padding:0 12px}
+        .outputPanel{padding:20px}
+        .result-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+        .result-card{border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff}
+        .result-card h4{margin:0 0 12px;color:#143d7a}
+        .line{margin:8px 0;font-size:14px}
+        .label{font-weight:700;color:#344054}
+        .badge{
+          display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700
+        }
+        .green{background:#e8f8ef;color:#067647}
+        .red{background:#fff1f2;color:#b42318}
+        .orange{background:#fff4e5;color:#b54708}
+        .blue{background:#e7f0ff;color:#1d4ed8}
+        .image-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .image-grid img{width:100%;height:170px;object-fit:cover;border-radius:12px;border:1px solid #ddd}
+        .records-table{width:100%;border-collapse:collapse;margin-top:14px}
+        .records-table th,.records-table td{border-bottom:1px solid #edf2f7;padding:12px 10px;text-align:left;font-size:13px}
+        .records-table th{background:#f8fbff;color:#334155}
+        @media (max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.main-grid{grid-template-columns:1fr}}
+        @media (max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
+        @media (max-width:700px){.cards,.grid-2,.grid-3,.image-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="badgeLogo">GI</div>
+            <div>
+                <h2>Government Impound</h2>
+                <small id="roleLabel">Portal</small>
+            </div>
+        </div>
+
+        <div class="nav">
+            <button class="active" onclick="scrollToSection('dashboard')">Dashboard</button>
+            <button id="navOwners" onclick="scrollToSection('ownersSection')">Owners</button>
+            <button id="navVehicles" onclick="scrollToSection('vehiclesSection')">Vehicles</button>
+            <button id="navEmployees" onclick="scrollToSection('employeesSection')">Employees</button>
+            <button id="navPolice" onclick="scrollToSection('policeAdminSection')">Police Setup</button>
+            <button id="navLots" onclick="scrollToSection('lotsSection')">Impound Lots</button>
+            <button id="navPoliceCheck" onclick="scrollToSection('policeSection')">Police Check</button>
+            <button id="navPayments" onclick="scrollToSection('paymentsSection')">Payments & Close</button>
+            <button id="navViewer" onclick="scrollToSection('viewerSection')">My Vehicle</button>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="topbar" id="dashboard">
+            <div class="page-title">
+                <h1>Government Impound System</h1>
+                <p id="welcomeText">Welcome</p>
+            </div>
+            <div class="top-actions">
+                <div class="pill" id="currentRolePill">Role: -</div>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card"><div class="title">Registered Owners</div><div class="value" id="ownersCount">-</div></div>
+            <div class="card"><div class="title">Registered Vehicles</div><div class="value" id="vehiclesCount">-</div></div>
+            <div class="card"><div class="title">Total Records</div><div class="value" id="recordsCount">-</div></div>
+            <div class="card"><div class="title">Closed Records</div><div class="value" id="closedCount">-</div></div>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <section class="section" id="ownersSection">
+                    <h3>Owner Registration</h3>
+                    <p class="sub">Create vehicle owner account</p>
+                    <div class="grid-2">
+                        <div class="field"><label>Owner ID</label><input id="ownerId"></div>
+                        <div class="field"><label>Age</label><input id="age" type="number"></div>
+                        <div class="field"><label>First Name</label><input id="firstName"></div>
+                        <div class="field"><label>Last Name</label><input id="lastName"></div>
+                    </div>
+                    <div class="field"><label>Address</label><input id="address"></div>
+                    <div class="actions"><button class="btn btn-primary" onclick="addOwner()">Save Owner</button></div>
+                </section>
+
+                <section class="section" id="vehiclesSection">
+                    <h3>Vehicle Registration</h3>
+                    <p class="sub">Upload 3 images directly from device</p>
+                    <div class="grid-2">
+                        <div class="field"><label>Plate Number</label><input id="plateNumber"></div>
+                        <div class="field"><label>Owner ID (optional)</label><input id="vehicleOwnerId"></div>
+                        <div class="field"><label>Color</label><input id="color"></div>
+                        <div class="field"><label>Model</label><input id="model"></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="field"><label>Vehicle Type</label><input id="vehicleType"></div>
+                        <div class="field">
+                            <label>Licensed?</label>
+                            <select id="isLicensed">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="field"><label>Image 1</label><input type="file" id="image1" accept="image/*"></div>
+                        <div class="field"><label>Image 2</label><input type="file" id="image2" accept="image/*"></div>
+                        <div class="field"><label>Image 3</label><input type="file" id="image3" accept="image/*"></div>
+                    </div>
+                    <div class="actions"><button class="btn btn-primary" onclick="addVehicle()">Save Vehicle</button></div>
+                </section>
+
+                <section class="section" id="employeesSection">
+                    <h3>Employee Management</h3>
+                    <p class="sub">Administrative employee can process payments and close records</p>
+                    <div class="grid-2">
+                        <div class="field"><label>Employee ID</label><input id="employeeId"></div>
+                        <div class="field"><label>Salary</label><input id="salary" type="number" step="0.01"></div>
+                        <div class="field"><label>Name</label><input id="employeeName"></div>
+                        <div class="field"><label>Office Number</label><input id="officeNumber"></div>
+                    </div>
+                    <div class="actions"><button class="btn btn-primary" onclick="addEmployee()">Save Employee</button></div>
+                </section>
+
+                <section class="section" id="policeAdminSection">
+                    <h3>Police Setup</h3>
+                    <p class="sub">Admin creates police ID, first name, and last name</p>
+                    <div class="grid-3">
+                        <div class="field"><label>Police ID</label><input id="policeId"></div>
+                        <div class="field"><label>First Name</label><input id="policeFirstName"></div>
+                        <div class="field"><label>Last Name</label><input id="policeLastName"></div>
+                    </div>
+                    <div class="actions"><button class="btn btn-primary" onclick="addPolice()">Save Police Officer</button></div>
+                </section>
+
+                <section class="section" id="lotsSection">
+                    <h3>Impound Lot Management</h3>
+                    <div class="grid-3">
+                        <div class="field"><label>Lot ID</label><input id="lotId"></div>
+                        <div class="field"><label>Location</label><input id="lotLocation"></div>
+                        <div class="field"><label>Capacity</label><input id="capacity" type="number"></div>
+                    </div>
+                    <div class="actions"><button class="btn btn-primary" onclick="addLot()">Save Lot</button></div>
+                </section>
+            </div>
+
+            <div>
+                <section class="section" id="policeSection">
+                    <h3>Police Actions</h3>
+                    <p class="sub">Search vehicle, inspect status, create violation or violation + impound</p>
+                    <div class="search-box">
+                        <input id="policePlate" placeholder="Enter plate number">
+                        <button class="btn btn-secondary" onclick="policeCheck()">Check Vehicle</button>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field"><label>Record ID</label><input id="pRecordId"></div>
+                        <div class="field"><label>Fine</label><input id="pFine" type="number" step="0.01"></div>
+                        <div class="field"><label>Violation Reason</label><input id="pViolationType"></div>
+                        <div class="field"><label>Police ID</label><input id="pPoliceId"></div>
+                        <div class="field"><label>Daily Rate (for impound)</label><input id="pDailyRate" type="number" step="0.01"></div>
+                        <div class="field"><label>Lot ID (only with impound)</label><input id="pLotId"></div>
+                    </div>
+
+                    <div class="option-buttons">
+                        <button class="btn btn-primary" onclick="policeViolationOnly()">Violation Only</button>
+                        <button class="btn btn-danger" onclick="policeViolationImpound()">Violation + Impound</button>
+                    </div>
+                </section>
+
+                <section class="section" id="paymentsSection">
+                    <h3>Employee Payment & Closure</h3>
+                    <p class="sub">Employee only closes record after payment</p>
+                    <div class="grid-2">
+                        <div>
+                            <div class="field"><label>Record ID</label><input id="payRecordId"></div>
+                            <div class="field"><label>Amount</label><input id="payAmount" type="number" step="0.01"></div>
+                            <button class="btn btn-success" onclick="payRecord()">Pay Record</button>
+                        </div>
+                        <div>
+                            <div class="field"><label>Record ID</label><input id="closeRecordId"></div>
+                            <button class="btn btn-danger" onclick="closeRecord()">Close Record</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" id="viewerSection">
+                    <h3>Viewer Dashboard</h3>
+                    <p class="sub">Shows vehicle, license status, violations, value, paid, remaining, and images</p>
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="viewerSearch()">
+                            Search By Plate
+                        </button>
+                    </div>
+                    <div class="search-box">
+                        <input id="viewerPlate" placeholder="Enter your plate number">
+
+                    </div>
+
+                    <!-- 🔥 OUTPUT -->
+                    <div id="viewerResult"></div>
+                </section>
+            </div>
+        </div>
+
+        <section class="outputPanel">
+            <h3 style="margin-top:0;color:#12396f">Output</h3>
+            <div id="resultArea">System ready.</div>
+        </section>
+
+        <section class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                <div>
+                    <h3 style="margin-bottom:6px;">Records Registry</h3>
+                    <div class="sub" style="margin:0;">Official list of system records</div>
+                </div>
+                <button class="btn btn-primary" onclick="loadRecords()">Refresh Records</button>
+            </div>
+
+            <div style="overflow:auto;margin-top:16px;">
+                <table class="records-table">
+                    <thead>
+                    <tr>
+                        <th>Record ID</th>
+                        <th>Type</th>
+                        <th>Fine</th>
+                        <th>Paid</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th>Plate</th>
+                        <th>Officer</th>
+                        <th>Lot</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recordsTableBody">
+                    <tr><td colspan="9">No data loaded yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const api = "/api";
+    const role = localStorage.getItem("role");
+    const fullName = localStorage.getItem("fullName");
+    const ownerId = localStorage.getItem("ownerId");
+
+    if (!role) window.location.href = "login.html";
+
+    document.getElementById("welcomeText").textContent = `Welcome, ${fullName || ""}`;
+    document.getElementById("currentRolePill").textContent = `Role: ${role}`;
+    document.getElementById("roleLabel").textContent = `${role} Portal`;
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function scrollToSection(id) {
+      document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    function imgTag(file) {
+      if (!file) return "";
+      return `<img src="/uploads/${file}" alt="vehicle image">`;
+    }
+
+    function showMessage(msg, ok=true) {
+      document.getElementById("resultArea").innerHTML = `
+        <div class="result-wrap">
+          <div class="result-card">
+            <h4>${ok ? "Operation Result" : "Error"}</h4>
+            <div class="line">${msg}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderVehicleCard(data) {
+      const owner = data.owner;
+      document.getElementById("resultArea").innerHTML = `
+        <div class="result-wrap">
+          <div class="result-card">
+            <h4>Vehicle Information</h4>
+            <div class="line"><span class="label">Plate:</span> ${data.plateNumber || "-"}</div>
+            <div class="line"><span class="label">Model:</span> ${data.model || "-"}</div>
+            <div class="line"><span class="label">Color:</span> ${data.color || "-"}</div>
+            <div class="line"><span class="label">Type:</span> ${data.vehicleType || "-"}</div>
+            <div class="line"><span class="label">Licensed:</span> ${data.isLicensed ? '<span class="badge green">Yes</span>' : '<span class="badge red">No</span>'}</div>
+          </div>
+          <div class="result-card">
+            <h4>Owner Information</h4>
+            <div class="line"><span class="label">Owner ID:</span> ${owner?.ownerId || "-"}</div>
+            <div class="line"><span class="label">Full Name:</span> ${owner ? owner.firstName + ' ' + owner.lastName : '-'}</div>
+            <div class="line"><span class="label">Address:</span> ${owner?.address || "-"}</div>
+            <div class="line"><span class="label">Age:</span> ${owner?.age ?? "-"}</div>
+          </div>
+          <div class="result-card" style="grid-column:1/-1;">
+            <h4>Vehicle Images</h4>
+            <div class="image-grid">
+              ${imgTag(data.image1)}
+              ${imgTag(data.image2)}
+              ${imgTag(data.image3)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPoliceCard(data) {
+      const owner = data.owner;
+      document.getElementById("resultArea").innerHTML = `
+        <div class="result-wrap">
+          <div class="result-card">
+            <h4>Vehicle Information</h4>
+            <div class="line"><span class="label">Plate:</span> ${data.plateNumber}</div>
+            <div class="line"><span class="label">Model:</span> ${data.model}</div>
+            <div class="line"><span class="label">Color:</span> ${data.color}</div>
+            <div class="line"><span class="label">Type:</span> ${data.vehicleType}</div>
+          </div>
+          <div class="result-card">
+            <h4>Owner Information</h4>
+            <div class="line"><span class="label">Owner ID:</span> ${owner?.ownerId || "-"}</div>
+            <div class="line"><span class="label">Name:</span> ${owner ? owner.firstName + ' ' + owner.lastName : '-'}</div>
+            <div class="line"><span class="label">Address:</span> ${owner?.address || "-"}</div>
+          </div>
+          <div class="result-card">
+            <h4>Police Status</h4>
+            <div class="line"><span class="label">Licensed:</span> ${data.isLicensed ? '<span class="badge green">Yes</span>' : '<span class="badge red">No</span>'}</div>
+            <div class="line"><span class="label">Has Violation:</span> ${data.hasViolation ? '<span class="badge orange">Yes</span>' : '<span class="badge green">No</span>'}</div>
+            <div class="line"><span class="label">Open Impound:</span> ${data.hasOpenImpound ? '<span class="badge red">Yes</span>' : '<span class="badge green">No</span>'}</div>
+          </div>
+          <div class="result-card" style="grid-column:1/-1;">
+            <h4>Vehicle Images</h4>
+            <div class="image-grid">
+              ${imgTag(data.image1)}
+              ${imgTag(data.image2)}
+              ${imgTag(data.image3)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderViewerCard(data) {
+      const vehicle = data;
+      const violations = data.violations || [];
+
+      let violationsHtml = violations.length
+        ? violations.map(v => `
+            <div class="result-card">
+              <h4>Violation / Record</h4>
+              <div class="line"><span class="label">Record ID:</span> ${v.recordId}</div>
+              <div class="line"><span class="label">Type:</span> ${v.recordType}</div>
+              <div class="line"><span class="label">Reason:</span> ${v.violationType || "-"}</div>
+              <div class="line"><span class="label">Fine:</span> ${v.fine}</div>
+              <div class="line"><span class="label">Paid:</span> ${v.paidAmount}</div>
+              <div class="line"><span class="label">Remaining:</span> ${v.remainingAmount}</div>
+              <div class="line"><span class="label">Status:</span> ${v.closed ? '<span class="badge green">Closed</span>' : '<span class="badge red">Open</span>'}</div>
+              <div class="line"><span class="label">Impound Lot:</span> ${v.lotId || "No Impound"}</div>
+            </div>
+          `).join("")
+        : `<div class="result-card"><h4>Violations</h4><div class="line">No violations found.</div></div>`;
+
+      document.getElementById("resultArea").innerHTML = `
+        <div class="result-wrap">
+          <div class="result-card">
+            <h4>My Vehicle</h4>
+            <div class="line"><span class="label">Plate:</span> ${vehicle?.plateNumber || "-"}</div>
+            <div class="line"><span class="label">Model:</span> ${vehicle?.model || "-"}</div>
+            <div class="line"><span class="label">Color:</span> ${vehicle?.color || "-"}</div>
+            <div class="line"><span class="label">Type:</span> ${vehicle?.vehicleType || "-"}</div>
+            <div class="line"><span class="label">Licensed:</span> ${vehicle?.isLicensed ? '<span class="badge green">Yes</span>' : '<span class="badge red">No</span>'}</div>
+          </div>
+          <div class="result-card" style="grid-column:1/-1;">
+            <h4>Vehicle Images</h4>
+            <div class="image-grid">
+              ${imgTag(vehicle?.image1)}
+              ${imgTag(vehicle?.image2)}
+              ${imgTag(vehicle?.image3)}
+            </div>
+          </div>
+          ${violationsHtml}
+        </div>
+      `;
+    }
+
+    function applyRolePermissions() {
+      const hide = (id) => document.getElementById(id).style.display = "none";
+
+      if (role === "ADMIN") {
+        hide("viewerSection");
+        hide("navViewer");
+      }
+
+      if (role === "POLICE") {
+        hide("ownersSection");
+        hide("vehiclesSection");
+        hide("employeesSection");
+        hide("policeAdminSection");
+        hide("lotsSection");
+        hide("paymentsSection");
+        hide("navOwners");
+        hide("navVehicles");
+        hide("navEmployees");
+        hide("navPolice");
+        hide("navLots");
+        hide("navPayments");
+        hide("viewerSection");
+        hide("navViewer");
+      }
+
+      if (role === "EMPLOYEE") {
+        hide("ownersSection");
+        hide("vehiclesSection");
+        hide("employeesSection");
+        hide("policeAdminSection");
+        hide("lotsSection");
+        hide("policeSection");
+        hide("navOwners");
+        hide("navVehicles");
+        hide("navEmployees");
+        hide("navPolice");
+        hide("navLots");
+        hide("navPoliceCheck");
+        hide("viewerSection");
+        hide("navViewer");
+      }
+
+      if (role === "VIEWER") {
+        hide("ownersSection");
+        hide("vehiclesSection");
+        hide("employeesSection");
+        hide("policeAdminSection");
+        hide("lotsSection");
+        hide("policeSection");
+        hide("paymentsSection");
+        hide("navOwners");
+        hide("navVehicles");
+        hide("navEmployees");
+        hide("navPolice");
+        hide("navLots");
+        hide("navPoliceCheck");
+        hide("navPayments");
+      }
+    }
+
+    async function addOwner() {
+      const res = await fetch(api + "/owners", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          ownerId: document.getElementById("ownerId").value,
+          firstName: document.getElementById("firstName").value,
+          lastName: document.getElementById("lastName").value,
+          address: document.getElementById("address").value,
+          age: parseInt(document.getElementById("age").value)
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+    }
+
+    async function addVehicle() {
+      const formData = new FormData();
+      formData.append("plateNumber", document.getElementById("plateNumber").value);
+      formData.append("color", document.getElementById("color").value);
+      formData.append("model", document.getElementById("model").value);
+      formData.append("vehicleType", document.getElementById("vehicleType").value);
+      formData.append("ownerId", document.getElementById("vehicleOwnerId").value);
+      formData.append("isLicensed", document.getElementById("isLicensed").value);
+      formData.append("image1", document.getElementById("image1").files[0]);
+      formData.append("image2", document.getElementById("image2").files[0]);
+      formData.append("image3", document.getElementById("image3").files[0]);
+
+      const res = await fetch(api + "/vehicles", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      showMessage(data.message, data.success);
+    }
+
+    async function addEmployee() {
+      const res = await fetch(api + "/employees", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          employeeId: document.getElementById("employeeId").value,
+          name: document.getElementById("employeeName").value,
+          officeNumber: document.getElementById("officeNumber").value,
+          salary: parseFloat(document.getElementById("salary").value)
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+    }
+
+    async function addPolice() {
+      const res = await fetch(api + "/police", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          policeId: document.getElementById("policeId").value,
+          firstName: document.getElementById("policeFirstName").value,
+          lastName: document.getElementById("policeLastName").value
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+    }
+
+    async function addLot() {
+      const res = await fetch(api + "/lots", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          lotId: document.getElementById("lotId").value,
+          location: document.getElementById("lotLocation").value,
+          capacity: parseInt(document.getElementById("capacity").value)
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+    }
+
+    async function policeCheck() {
+      const plate = document.getElementById("policePlate").value;
+      const data = await (await fetch(api + "/police/check/" + plate)).json();
+
+      if (!data.success) {
+        showMessage(data.message, false);
+        return;
+      }
+
+      renderPoliceCard(data);
+    }
+
+    async function policeViolationOnly() {
+      const res = await fetch(api + "/records/police/violation-only", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          recordId: document.getElementById("pRecordId").value,
+          fine: parseFloat(document.getElementById("pFine").value),
+          violationType: document.getElementById("pViolationType").value,
+          plateNumber: document.getElementById("policePlate").value,
+          policeId: document.getElementById("pPoliceId").value
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+      await loadRecords();
+    }
+
+    async function policeViolationImpound() {
+      const res = await fetch(api + "/records/police/violation-impound", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          recordId: document.getElementById("pRecordId").value,
+          fine: parseFloat(document.getElementById("pFine").value),
+          violationType: document.getElementById("pViolationType").value,
+          dailyRate: parseFloat(document.getElementById("pDailyRate").value),
+          plateNumber: document.getElementById("policePlate").value,
+          policeId: document.getElementById("pPoliceId").value,
+          lotId: document.getElementById("pLotId").value
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+      await loadRecords();
+    }
+
+    async function payRecord() {
+      const res = await fetch(api + "/records/pay", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          recordId: document.getElementById("payRecordId").value,
+          amount: parseFloat(document.getElementById("payAmount").value)
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+      await loadRecords();
+    }
+
+    async function closeRecord() {
+      const res = await fetch(api + "/records/close", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          recordId: document.getElementById("closeRecordId").value
+        })
+      });
+      const data = await res.json();
+      showMessage(data.message, data.success);
+      await loadRecords();
+    }
+
+    async function loadViewerDashboard() {
+      if (!ownerId) {
+        showMessage("No linked owner ID for viewer account", false);
+        return;
+      }
+
+      const data = await (await fetch(api + "/viewer/" + ownerId)).json();
+
+      if (!data.success) {
+        showMessage(data.message, false);
+        return;
+      }
+
+      renderViewerCard(data);
+    }
+
+    async function loadRecords() {
+      const data = await (await fetch(api + "/records")).json();
+
+      if (!data.success) {
+        showMessage(data.message, false);
+        return;
+      }
+
+      renderRecordsTable(data.records);
+      updateDashboard(data.records);
+    }
+
+    function renderRecordsTable(data) {
+      const body = document.getElementById("recordsTableBody");
+
+      if (!Array.isArray(data) || data.length === 0) {
+        body.innerHTML = `<tr><td colspan="9">No records found.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.recordId ?? ""}</td>
+          <td>${r.recordType ?? ""}</td>
+          <td>${r.fine ?? ""}</td>
+          <td>${r.paidAmount ?? ""}</td>
+          <td>${r.remainingAmount ?? ""}</td>
+          <td>${r.closed ? '<span class="badge green">Closed</span>' : '<span class="badge red">Open</span>'}</td>
+          <td>${r.plateNumber ?? ""}</td>
+          <td>${r.officerId ?? ""}</td>
+          <td>${r.lotId ?? "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function updateDashboard(data) {
+      document.getElementById("recordsCount").textContent = Array.isArray(data) ? data.length : "-";
+      document.getElementById("closedCount").textContent =
+        Array.isArray(data) ? data.filter(x => x.closed === true).length : "-";
+    }
+
+    document.getElementById("ownersCount").textContent = "—";
+    document.getElementById("vehiclesCount").textContent = "—";
+    applyRolePermissions();
+    loadRecords();
+
+    if (role === "VIEWER") {
+      loadViewerDashboard();
+    }
+</script>
+<script>
+    async function viewerSearch() {
+        const plate = document.getElementById("viewerPlate").value.trim();
+
+        if (!plate) {
+            showMessage("Please enter plate number", false);
+            return;
+        }
+
+        try {
+            const res = await fetch(api + "/viewer/plate/" + plate);
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message, false);
+                // إخفاء الكارت إذا لم تنجح عملية البحث
+                document.getElementById("viewerCardContainer").innerHTML = "";
+                return;
+            }
+
+            // إرسال البيانات للدالة المسؤولة عن الرسم
+            renderViewerCard(data);
+
+        } catch (e) {
+            showMessage("Connection error", false);
+        }
+    }
+</script>
+
+</body>
+</html>
