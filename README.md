@@ -1,3 +1,28 @@
+
+## Project Evolution
+
+This project started as a console-based OOP application (Java) built for
+my Object-Oriented Programming course. It modeled a government impound
+system using inheritance (abstract `ImpoundRecord` extended by
+`CourtImpound` and `ViolationImpound`), polymorphism, and composition,
+with all data held in memory.
+
+I later extended it into a full-stack web application:
+
+- **Persistence:** replaced in-memory arrays with an SQLite database
+  designed from an ER model and normalized to 3NF.
+- **Architecture:** split the single `GovernmentImpoundSystem` class into
+  layers (`ApiController`, `ImpoundService`, `Repository`,
+  `DatabaseManager`) for separation of concerns.
+- **Web layer:** built a REST API with Spring Boot and a browser-based UI.
+- **New features:** role-based access (Admin, Police Officer, Employee,
+  Vehicle Owner), vehicle image upload, payment tracking, and an owner
+  dashboard.
+
+The original OOP design is preserved in the class diagram below, and the
+OOP concepts carried over into the final system.
+
+
  Project Video Link
 
 
